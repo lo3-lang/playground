@@ -3,3 +3,5 @@
 ![Works with kernel v0.1](https://img.shields.io/badge/works%20with-kernel_v0.1-blue?style=plastic)
 
 lo3 but in web
+
+[TRY IT OUT](lo3-lang.github.io/playground/)
