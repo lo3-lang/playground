@@ -4,4 +4,4 @@
 
 lo3 but in web
 
-[TRY IT OUT](lo3-lang.github.io/playground/)
+[TRY IT OUT](https://lo3-lang.github.io/playground/)
