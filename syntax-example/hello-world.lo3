@@ -1,0 +1,10 @@
+; hello world in lo3
+#n _msg $3
+#= _msg _Hello,lo3!
+#o %msg $0
+#n _x $0
+#= _x $10
+#+ _x $7
+#o %x $0
+#f _msg $0
+#f _x $0

@@ -1,0 +1,6 @@
+; string variable
+#n _greet $3
+#= _greet _lo3-lang
+#o %greet $0
+#o _version:0.1 $0
+#f _greet $0
