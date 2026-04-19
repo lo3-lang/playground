@@ -862,6 +862,10 @@ var _outAccum = '', _errAccum = '';
 // scriptDirectory is set by the generated code and points to the dir of index.html
 function locateFile(path, scriptDirectory) { return scriptDirectory + path; }
 
+
+// Initialize Module if not already defined (STEP 2 will redeclare it)
+var Module = typeof Module !== 'undefined' ? Module : {};
+
 // Fetch WASM async and store in Module.wasmBinary for STEP 2 to pick up
 // instantiateWasm is defined BEFORE the async fetch starts
 // STEP 2 can call it even before bytes arrive
