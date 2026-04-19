@@ -881,7 +881,11 @@ Module.instantiateWasm = function(imports, successCallback) {
   var xhr = new XMLHttpRequest();
   xhr.open("GET", baseUrl + "lo3.wasm", false);  // false = synchronous
   xhr.send(null);
-  Module.wasmBinary = new Uint8Array(xhr.response);
+  // responseText works for sync XHR (no responseType needed)
+  var text = xhr.responseText;
+  var bytes = new Uint8Array(text.length);
+  for(var i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i) & 0xFF;
+  Module.wasmBinary = bytes;
   window.__lo3_wasm_bytes = Module.wasmBinary;
 })();
 
