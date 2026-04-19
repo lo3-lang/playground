@@ -878,22 +878,20 @@ Module.instantiateWasm = function(imports, successCallback) {
 (function() {
   var baseUrl = (typeof document !== "undefined" && document.currentScript && document.currentScript.src) || (typeof location !== "undefined" ? location.href : "");
   if (baseUrl) { baseUrl = baseUrl.replace(/[?#].*/, "").replace(/[^/]+$/, ""); }
-  fetch(baseUrl + "lo3.wasm")
-    .then(function(response) { return response.arrayBuffer(); })
-    .then(function(buffer) {
-      Module.wasmBinary = new Uint8Array(buffer);
-      window.__lo3_wasm_bytes = Module.wasmBinary;
-      // Now instantiate and set Module["asm"] so exports work
-      WebAssembly.instantiate(Module.wasmBinary, {env: asmLibraryArg}).then(function(result) {
-        Module["asm"] = result.exports;
-      }).catch(function(err) {
-        err("WASM instantiation failed: " + err);
-      });
-    })
-    .catch(function(reason) {
-      err("Failed to fetch lo3.wasm: " + reason);
-    });
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", baseUrl + "lo3.wasm", false);  // false = synchronous
+  xhr.send(null);
+  Module.wasmBinary = new Uint8Array(xhr.response);
+  window.__lo3_wasm_bytes = Module.wasmBinary;
 })();
+
+// Deferred callback for when WASM is ready (set by STEP 2's run() call)
+window.__wasmbinaryReadyCallbacks = window.__wasmbinaryReadyCallbacks || [];
+// Check if STEP 2 already tried to instantiate — if so, trigger its callbacks
+if (Module.wasmBinary && typeof WebAssembly !== "undefined") {
+  window.__wasmbinaryReadyCallbacks.forEach(function(cb) { cb(); });
+  window.__wasmbinaryReadyCallbacks = [];
+}
 
 var Module = {
   locateFile: locateFile,
