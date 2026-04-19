@@ -139,35 +139,61 @@ var _outAccum = '', _errAccum = '';
 // locateFile must be global so STEP 2 generated code finds it
 // scriptDirectory is set by the generated code and points to the dir of index.html
 function locateFile(path, scriptDirectory) { return scriptDirectory + path; }
-var Module = {
-  locateFile: locateFile,
-  wasmBinaryFile: "lo3.wasm",
-  // Override instantiateWasm to use our own fetch+instantiate
-  instantiateWasm: function(info, receiveInstance) {
-    addRunDependency("wasm-instantiate");
-    // scriptDirectory in STEP 2 is "" at this point — use document.currentScript or document.location
+
+// PRE-FETCH the wasm binary synchronously before STEP 2 runs.
+// We store the raw bytes in Module.wasmBinary so STEP 2's getBinary() uses them.
+(function() {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'lo3.wasm', false);
+    xhr.responseType = 'arraybuffer';
+    xhr.send(null);
+    if (xhr.status === 200 || xhr.status === 0) {
+      Module.wasmBinary = new Uint8Array(xhr.response);
+    }
+  } catch(e) { /* fallback - let STEP 2 try its own loading */ }
+})();
+
+// STEP 2's generated code calls createWasm() at the end. We define it as a global
+// function here so STEP 2 uses our version instead of its generated one.
+// The pre-fetch above puts the raw wasm bytes in Module.wasmBinary.
+window.createWasm = function() {
+  var info = {"env": asmLibraryArg, "wasi_snapshot_preview1": asmLibraryArg};
+  function receiveInstance(instance, module) {
+    var exports = instance.exports;
+    Module["asm"] = exports;
+    wasmMemory = Module["asm"]["memory"];
+    updateGlobalBufferAndViews(wasmMemory.buffer);
+    wasmTable = Module["asm"]["__indirect_function_table"];
+    addOnInit(Module["asm"]["__wasm_call_ctors"]);
+    removeRunDependency("wasm-instantiate");
+  }
+  addRunDependency("wasm-instantiate");
+  // Use the pre-fetched binary from Module.wasmBinary
+  if (Module["wasmBinary"]) {
+    var result = WebAssembly.instantiate(Module["wasmBinary"], info);
+    receiveInstance(result);
+  } else {
+    // Fallback: fetch and instantiate async
     var baseUrl = (typeof document !== "undefined" && document.currentScript && document.currentScript.src) || (typeof location !== "undefined" ? location.href : "");
     if (baseUrl) { baseUrl = baseUrl.replace(/[?#].*/, "").replace(/[^/]+$/, ""); }
-    var wasmUrl = baseUrl + Module.wasmBinaryFile;
-    fetch(wasmUrl)
-      .then(function(response) {
-        if (!response.ok) throw new Error("WASM fetch failed: " + response.status);
-        return response.arrayBuffer();
-      })
+    fetch(baseUrl + "lo3.wasm")
+      .then(function(response) { return response.arrayBuffer(); })
       .then(function(buffer) {
-        removeRunDependency("wasm-instantiate");
-        return WebAssembly.instantiate(buffer, info);
-      })
-      .then(function(result) {
-        receiveInstance(result.instance);
+        var result = WebAssembly.instantiate(buffer, info);
+        receiveInstance(result);
       })
       .catch(function(reason) {
         removeRunDependency("wasm-instantiate");
         err("WASM loading failed: " + reason);
-        throw reason;
       });
-    return null;
-  },
+  }
+  return {};
+};
+
+var Module = {
+  locateFile: locateFile,
+  wasmBinaryFile: "lo3.wasm",
   print:    function(t) { _outAccum += t + '\n'; },
   printErr: function(t) { _errAccum += t + '\n'; },
   noInitialRun: true,
