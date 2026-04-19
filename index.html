@@ -875,19 +875,37 @@ Module.instantiateWasm = function(imports, successCallback) {
   return {};
 };
 
+// STEP 1: Synchronous binary loading that runs BEFORE STEP 2
 (function() {
+  // Get base URL of this script
   var baseUrl = (typeof document !== "undefined" && document.currentScript && document.currentScript.src) || (typeof location !== "undefined" ? location.href : "");
   if (baseUrl) { baseUrl = baseUrl.replace(/[?#].*/, "").replace(/[^/]+$/, ""); }
+  
+  // Use sync XHR with responseText and overrideMimeType for proper binary handling
   var xhr = new XMLHttpRequest();
-  xhr.open("GET", baseUrl + "lo3.wasm", false);  // false = synchronous
+  xhr.open("GET", baseUrl + "lo3.wasm", false);
+  // CRITICAL: overrideMimeType MUST be called BEFORE send() to work for sync XHR
+  xhr.overrideMimeType('text/plain; charset=x-user-defined');
   xhr.send(null);
-  // responseText works for sync XHR (no responseType needed)
-  var text = xhr.responseText;
-  var bytes = new Uint8Array(text.length);
-  for(var i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i) & 0xFF;
-  Module.wasmBinary = bytes;
-  window.__lo3_wasm_bytes = Module.wasmBinary;
+  
+  // Convert responseText to proper binary bytes (x-user-defined preserves all 8 bits)
+  var binaryStr = xhr.responseText;
+  var bytes = new Uint8Array(binaryStr.length);
+  for (var i = 0; i < binaryStr.length; i++) {
+    bytes[i] = binaryStr.charCodeAt(i) & 0xFF;
+  }
+  
+  // CRITICAL: Set Module.wasmBinary BEFORE STEP 2 runs
+  // This is the ONLY thing that makes the sync approach work
+  window.__lo3_wasm_bytes = bytes;
+  
+  // Also set Module.wasmBinaryFile to help Emscripten find it
+  Module.wasmBinaryFile = baseUrl + "lo3.wasm";
 })();
+
+// STEP 1.5: Also set Module.wasmBinary early so STEP 2's inline code can use it
+// This runs synchronously after the IIFE above
+Module.wasmBinary = window.__lo3_wasm_bytes;
 
 // Deferred callback for when WASM is ready (set by STEP 2's run() call)
 window.__wasmbinaryReadyCallbacks = window.__wasmbinaryReadyCallbacks || [];
