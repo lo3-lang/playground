@@ -137,10 +137,37 @@ footer a:hover{color:var(--am)}
 <script>
 var _outAccum = '', _errAccum = '';
 // locateFile must be global so STEP 2 generated code finds it
-function locateFile(path) { return path; }
+// scriptDirectory is set by the generated code and points to the dir of index.html
+function locateFile(path, scriptDirectory) { return scriptDirectory + path; }
 var Module = {
   locateFile: locateFile,
   wasmBinaryFile: "lo3.wasm",
+  // Override instantiateWasm to use our own fetch+instantiate
+  instantiateWasm: function(info, receiveInstance) {
+    addRunDependency("wasm-instantiate");
+    // scriptDirectory in STEP 2 is "" at this point — use document.currentScript or document.location
+    var baseUrl = (typeof document !== "undefined" && document.currentScript && document.currentScript.src) || (typeof location !== "undefined" ? location.href : "");
+    if (baseUrl) { baseUrl = baseUrl.replace(/[?#].*/, "").replace(/[^/]+$/, ""); }
+    var wasmUrl = baseUrl + Module.wasmBinaryFile;
+    fetch(wasmUrl)
+      .then(function(response) {
+        if (!response.ok) throw new Error("WASM fetch failed: " + response.status);
+        return response.arrayBuffer();
+      })
+      .then(function(buffer) {
+        removeRunDependency("wasm-instantiate");
+        return WebAssembly.instantiate(buffer, info);
+      })
+      .then(function(result) {
+        receiveInstance(result.instance);
+      })
+      .catch(function(reason) {
+        removeRunDependency("wasm-instantiate");
+        err("WASM loading failed: " + reason);
+        throw reason;
+      });
+    return null;
+  },
   print:    function(t) { _outAccum += t + '\n'; },
   printErr: function(t) { _errAccum += t + '\n'; },
   noInitialRun: true,
