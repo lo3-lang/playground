@@ -933,6 +933,9 @@ var Module = {
     if (window._onWasmReady) window._onWasmReady();
   }
 };
+
+// Restore wasmBinary that was set in STEP 1
+Module.wasmBinary = window.__lo3_wasm_bytes;
 </script>
 
 <!-- STEP 2: Emscripten WASM (uses Module global from above) -->
