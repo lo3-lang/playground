@@ -136,7 +136,11 @@ footer a:hover{color:var(--am)}
      So our hooks are picked up automatically.  -->
 <script>
 var _outAccum = '', _errAccum = '';
+// locateFile must be global so STEP 2 generated code finds it
+function locateFile(path) { return path; }
 var Module = {
+  locateFile: locateFile,
+  wasmBinaryFile: "lo3.wasm",
   print:    function(t) { _outAccum += t + '\n'; },
   printErr: function(t) { _errAccum += t + '\n'; },
   noInitialRun: true,
