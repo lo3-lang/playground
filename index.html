@@ -244,11 +244,6 @@ var Module=typeof Module!="undefined"?Module:{};var moduleOverrides=Object.assig
   </div>
   <div class="xrow">
     <span class="xrow-lbl">examples</span>
-    <button class="xpill active" onclick="loadEx(0)">hello world</button>
-    <button class="xpill" onclick="loadEx(1)">alu ops</button>
-    <button class="xpill" onclick="loadEx(2)">string var</button>
-    <button class="xpill" onclick="loadEx(3)">exit codes</button>
-    <button class="xpill" onclick="loadEx(4)">multi vars</button>
   </div>
 </section>
 
@@ -333,13 +328,53 @@ window._onWasmReady = function() {
   document.getElementById('run-btn').disabled = false;
 };
 
-var EXAMPLES = [
-"; hello world\n#n _msg $3\n#= _msg _Hello,lo3!\n#o %msg $0\n#n _x $0\n#= _x $10\n#+ _x $7\n#o %x $0\n#f _msg $0\n#f _x $0",
-"; alu operations\n#n _a $0\n#n _b $0\n#= _a $100\n#= _b $42\n#+ _a $7\n#o %a $0\n#- _b $2\n#o %b $0\n#* _a $2\n#o %a $0\n#/ _b $4\n#o %b $0\n#f _a $0\n#f _b $0",
-"; string variable\n#n _greet $3\n#= _greet _lo3-lang\n#o %greet $0\n#o _version:0.1 $0\n#f _greet $0",
-"; explicit exit\n#n _x $0\n#= _x $999\n#o %x $0\n#f _x $0\n#0 $0 $0",
-"; multiple vars\n#n _a $0\n#n _b $0\n#n _c $0\n#= _a $3\n#= _b $7\n#= _c $0\n#+ _c $3\n#+ _c $7\n#o %a $0\n#o %b $0\n#o %c $0\n#f _a $0\n#f _b $0\n#f _c $0"
+var EXAMPLE_FILES = [
+  'syntax-example/hello-world.lo3',
+  'syntax-example/alu-ops.lo3',
+  'syntax-example/string-var.lo3',
+  'syntax-example/exit-codes.lo3',
+  'syntax-example/multi-vars.lo3'
 ];
+var EXAMPLES = [];
+
+function loadExamplesFromDisk() {
+  var total = EXAMPLE_FILES.length;
+  var loaded = 0;
+  function tryRebuild() {
+    if (loaded + (EXAMPLES.filter(function(e){return e}).length) >= total) rebuildPills();
+  }
+  EXAMPLE_FILES.forEach(function(path, i) {
+    (function(idx) {
+      fetch(path).then(function(r) {
+        if (r.ok) return r.text();
+        return null;
+      }).then(function(text) {
+        if (text !== null) EXAMPLES[idx] = text;
+        loaded++;
+        tryRebuild();
+      }).catch(function() {
+        loaded++;
+        tryRebuild();
+      });
+    })(i);
+  });
+}
+function rebuildPills() {
+  var xrow = document.querySelector('.xrow');
+  var lbl = xrow.querySelector('.xrow-lbl');
+  xrow.innerHTML = '';
+  xrow.appendChild(lbl);
+  EXAMPLES.forEach(function(text, i) {
+    if (!text) return;
+    var btn = document.createElement('button');
+    btn.className = 'xpill' + (i === 0 ? ' active' : '');
+    var label = EXAMPLE_FILES[i].replace('syntax-example/', '').replace('.lo3', '').replace(/-/g, ' ');
+    btn.textContent = label;
+    btn.onclick = (function(idx) { return function() { loadEx(idx); }; })(i);
+    xrow.appendChild(btn);
+  });
+}
+loadExamplesFromDisk();
 
 var ta = document.getElementById('code');
 
@@ -415,6 +450,18 @@ document.addEventListener('keydown', function(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
     if (!document.getElementById('run-btn').disabled) runCode();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    var blob = new Blob([ta.value], {type: 'text/plain'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'main.lo3';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 });
 
