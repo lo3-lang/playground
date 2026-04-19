@@ -145,11 +145,16 @@ function locateFile(path, scriptDirectory) { return scriptDirectory + path; }
 (function() {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'lo3.wasm', false);
-  xhr.responseType = 'arraybuffer';
+  // Cannot set responseType='arraybuffer' on sync XHR in document context (Chrome throws InvalidAccessError)
+  // So we read as text (default) and convert character codes to bytes manually
   xhr.send(null);
   if (xhr.status === 200 || xhr.status === 0) {
-    // Store in a global so STEP 2 can find it
-    window.__lo3_wasm_bytes = new Uint8Array(xhr.response);
+    var text = xhr.responseText;
+    var bytes = new Uint8Array(text.length);
+    for (var i = 0; i < text.length; i++) {
+      bytes[i] = text.charCodeAt(i) & 0xFF;
+    }
+    window.__lo3_wasm_bytes = bytes;
   }
 })();
 
