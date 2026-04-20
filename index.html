@@ -1008,7 +1008,6 @@ footer a:hover { color: var(--am); }
 </div>
 
 <!-- STEP 1: Module config — lo3.js auto-loads WASM when included -->
-<script src="lo3.js"></script>
 <script>
 var _outAccum = '', _errAccum = '';
 window.__lo3_ready = false;
@@ -1036,7 +1035,9 @@ var Module = {
     window.__lo3_error = _errAccum;
   }
 };
-
+</script>
+<script src="lo3.js"></script>
+<script>
 if (typeof createWasm === 'function') {
   createWasm().catch(function(err) {
     console.error('WASM load failed:', err);
