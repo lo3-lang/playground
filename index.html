@@ -1038,14 +1038,6 @@ var Module = {
 };
 </script>
 <script src="lo3.js"></script>
-<script>
-if (typeof createWasm === 'function') {
-  createWasm().catch(function(err) {
-    console.error('WASM load failed:', err);
-    window.__lo3_error = 'WASM load failed: ' + (err.message || String(err));
-  });
-}
-</script>
 
 <!-- STEP 3: App -->
 <script>
