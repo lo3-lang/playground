@@ -1031,9 +1031,20 @@ var Module = {
     window._lo3Ver = Module.UTF8ToString(Module['_lo3_version']());
     if (window._onWasmReady) window._onWasmReady();
   },
-  onAbort: function() {
-    _errAccum += 'ABORT: ' + Array.from(arguments).join(' ') + '\n';
+  onAbort: function(what) {
+    _errAccum += 'ABORT: ' + (what || '') + '\n';
     window.__lo3_error = _errAccum;
+    var banner = document.getElementById('wasm-banner');
+    if (banner) {
+      banner.className = 'wasm-inner error';
+      banner.innerHTML = '<strong>wasm runtime failed</strong> &mdash; ' + (what || 'unknown error');
+    }
+    var chip = document.getElementById('wasm-chip');
+    if (chip) {
+      chip.textContent = 'wasm error';
+      chip.style.color = 'var(--rd)';
+      chip.style.borderColor = 'var(--rdd)';
+    }
   }
 };
 </script>

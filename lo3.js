@@ -4110,6 +4110,7 @@ var findStringEnd = (heapOrArray, idx, maxBytesToRead, ignoreNul) => {
     };
 
 
+
   FS.createPreloadedFile = FS_createPreloadedFile;
   FS.preloadFile = FS_preloadFile;
   FS.staticInit();;
@@ -4162,6 +4163,7 @@ if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
 // Begin runtime exports
   Module['ccall'] = ccall;
   Module['cwrap'] = cwrap;
+  Module['UTF8ToString'] = UTF8ToString;
   var missingLibrarySymbols = [
   'writeI53ToI64',
   'writeI53ToI64Clamped',
@@ -4384,7 +4386,6 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'PATH_FS',
   'UTF8Decoder',
   'UTF8ArrayToString',
-  'UTF8ToString',
   'stringToUTF8Array',
   'stringToUTF8',
   'lengthBytesUTF8',
