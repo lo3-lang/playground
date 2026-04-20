@@ -1036,6 +1036,13 @@ var Module = {
     window.__lo3_error = _errAccum;
   }
 };
+
+if (typeof createWasm === 'function') {
+  createWasm().catch(function(err) {
+    console.error('WASM load failed:', err);
+    window.__lo3_error = 'WASM load failed: ' + (err.message || String(err));
+  });
+}
 </script>
 
 <!-- STEP 3: App -->
