@@ -1027,7 +1027,7 @@ var Module = {
   noInitialRun: true,
   onRuntimeInitialized: function() {
     window.__lo3_ready = true;
-    window._lo3Run = Module['_lo3_run'];
+    window._lo3Run = Module.cwrap('lo3_run', 'number', ['string']);
     window._lo3Ver = Module.UTF8ToString(Module['_lo3_version']());
     if (window._onWasmReady) window._onWasmReady();
   },
