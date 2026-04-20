@@ -1122,7 +1122,7 @@ function clearOut() {
 }
 
 function runCode() {
-  if (!window._lo3Ready) return;
+  if (!window.__lo3_ready) return;
   var btn = document.getElementById('run-btn');
   var dot = document.getElementById('sdot');
   var out = document.getElementById('output');
