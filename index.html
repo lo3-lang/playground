@@ -849,8 +849,166 @@ footer a:hover { color: var(--am); }
 }
 
 </style>
+</head>
+
+<body>
+<nav>
+  <a href="#" class="logo">lo3<span class="logo-sep"></span><span class="logo-sub">language runtime</span></a>
+  <ul>
+    <li><a href="#playground">playground</a></li>
+    <li><a href="#syntax">syntax</a></li>
+    <li><a href="#progress">progress</a></li>
+    <li><a href="https://github.com/lo3-lang" target="_blank">github</a></li>
+    <li><span class="nav-chip">v0.1-alpha</span></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <p class="hero-kicker">C99 &middot; token-based &middot; wasm-ready</p>
+  <h1>lo<span class="acc">3</span></h1>
+  <p class="hero-desc">A minimalist interpreted language. Every command follows <code>#CMD ARG1 ARG2</code> &mdash; always exactly two arguments, no exceptions.</p>
+  <div class="hero-cta">
+    <a href="#playground" class="btn-p"><span class="tri"></span>try in browser</a>
+    <a href="https://github.com/lo3-lang/lo3-core" class="btn-g" target="_blank">source &rarr;</a>
+    <a href="https://lo3-lang.github.io/learn-the-syntax/" class="btn-g" target="_blank">docs &rarr;</a>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="strip-item"><div class="strip-val">#CMD</div><div class="strip-lbl">unified syntax</div></div>
+  <div class="strip-item"><div class="strip-val">2</div><div class="strip-lbl">args per command</div></div>
+  <div class="strip-item"><div class="strip-val">C99</div><div class="strip-lbl">backend</div></div>
+  <div class="strip-item"><div class="strip-val">GPL-2</div><div class="strip-lbl">license</div></div>
+</div>
+
+<div class="wasm-bar">
+  <div class="wasm-inner loading" id="wasm-banner">
+    <div class="wasm-spin"></div>
+    <span><strong>loading wasm runtime&hellip;</strong></span>
+  </div>
+</div>
+
+<section id="playground">
+  <div class="sec-label">// playground</div>
+  <div class="shell">
+    <div class="topbar">
+      <div class="tabs"><div class="tab on"><div class="tdot"></div>main.lo3</div></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="tbadge">lo3 &middot; utf-8</span>
+        <span class="tbadge" id="wasm-chip" style="color:var(--amd);border-color:var(--amd)">loading</span>
+      </div>
+    </div>
+    <div class="panes">
+      <div class="cpane">
+        <div class="lnums" id="lnums"><span>1</span></div>
+        <textarea id="code" spellcheck="false" autocorrect="off" autocapitalize="off">; hello world in lo3
+#n _msg $3
+#= _msg _Hello,lo3!
+#o %msg $0
+#n _x $0
+#= _x $10
+#+ _x $7
+#o %x $0
+#f _msg $0
+#f _x $0</textarea>
+      </div>
+      <div class="opane">
+        <div class="ohead">
+          <div class="ohead-l"><div class="sdot" id="sdot"></div>output</div>
+          <button class="clear-btn" onclick="clearOut()">clear</button>
+        </div>
+        <div id="output"><span class="oprompt">lo3&gt; </span><span class="ocursor"></span></div>
+      </div>
+    </div>
+    <div class="botbar">
+      <button class="run-btn" id="run-btn" onclick="runCode()" disabled>
+        <span class="tri"></span> run
+      </button>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="shortcut-hint">ctrl+enter</span>
+        <div class="botmeta">
+          <span id="lc">ln 1, col 1</span>
+          <span id="cc">0 chars</span>
+          <span id="rt" style="color:var(--gnd)"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="xrow">
+    <span class="xrow-lbl">examples</span>
+  </div>
+</section>
+
+<section id="syntax">
+  <div style="max-width:1140px;margin:0 auto"><div class="sec-label">// syntax reference</div></div>
+  <div class="syn-grid">
+    <div class="syn-card">
+      <div class="syn-title">type prefixes</div>
+      <div class="syn-ex"><span class="si">$42</span>      <span class="scm">; integer</span>
+<span class="ss">_text</span>  <span class="scm">; string</span>
+<span class="sv">%name</span>  <span class="scm">; variable</span>
+<span class="sg">*0</span>     <span class="scm">; global[0]</span></div>
+      <p class="syn-desc">Every value carries a type prefix. Variables typed at creation: 0 = num, 3 = string.</p>
+    </div>
+    <div class="syn-card">
+      <div class="syn-title">variables</div>
+      <div class="syn-ex"><span class="sc">#n</span> <span class="ss">_x</span>  <span class="si">$0</span>   <span class="scm">; new num var</span>
+<span class="sc">#n</span> <span class="ss">_s</span>  <span class="si">$3</span>   <span class="scm">; new str var</span>
+<span class="sc">#=</span> <span class="sv">%x</span>  <span class="si">$99</span>  <span class="scm">; assign</span>
+<span class="sc">#f</span> <span class="sv">%x</span>  <span class="si">$0</span>   <span class="scm">; free</span></div>
+      <p class="syn-desc"><code>#n</code> allocates, <code>#f</code> frees. Max 256 variables.</p>
+    </div>
+    <div class="syn-card">
+      <div class="syn-title">alu operations</div>
+      <div class="syn-ex"><span class="sc">#+</span> <span class="sv">%x</span>  <span class="si">$5</span>  <span class="scm">; x += 5</span>
+<span class="sc">#-</span> <span class="sv">%x</span>  <span class="si">$2</span>  <span class="scm">; x -= 2</span>
+<span class="sc">#*</span> <span class="sv">%x</span>  <span class="si">$3</span>  <span class="scm">; x *= 3</span>
+<span class="sc">#/</span> <span class="sv">%x</span>  <span class="si">$4</span>  <span class="scm">; x /= 4</span></div>
+      <p class="syn-desc">Mutate arg1 in-place. Arg2 must be an integer literal.</p>
+    </div>
+    <div class="syn-card">
+      <div class="syn-title">i/o &amp; exit</div>
+      <div class="syn-ex"><span class="sc">#o</span> <span class="sv">%x</span>  <span class="si">$0</span>  <span class="scm">; print var</span>
+<span class="sc">#o</span> <span class="ss">_hi</span> <span class="si">$0</span>  <span class="scm">; print literal</span>
+<span class="sc">#0</span> <span class="si">$0</span>  <span class="si">$0</span>  <span class="scm">; exit 0</span>
+<span class="sc">#1</span> <span class="si">$0</span>  <span class="si">$0</span>  <span class="scm">; exit 1</span></div>
+      <p class="syn-desc">Without explicit exit, runs to EOF and exits 0.</p>
+    </div>
+  </div>
+</section>
+
+<section id="progress">
+  <div style="max-width:1140px;margin:0 auto"><div class="sec-label">// implementation status</div></div>
+  <div class="prog-grid">
+    <div class="prog-item"><span>ALU Operations</span><span class="prog-status done">&#10003; done</span></div>
+    <div class="prog-item"><span>Output / STDOUT</span><span class="prog-status done">&#10003; done</span></div>
+    <div class="prog-item"><span>Input / STDIN</span><span class="prog-status done">&#10003; done</span></div>
+    <div class="prog-item"><span>Variable system</span><span class="prog-status done">&#10003; done</span></div>
+    <div class="prog-item"><span>Manual exit (0/1)</span><span class="prog-status done">&#10003; done</span></div>
+    <div class="prog-item"><span>Auto exit (EOF)</span><span class="prog-status done">&#10003; done</span></div>
+    <div class="prog-item"><span>WebAssembly build</span><span class="prog-status done">&#10003; done</span></div>
+    <div class="prog-item"><span>Control Flow / jmp</span><span class="prog-status wip">~ wip</span></div>
+    <div class="prog-item"><span>Plugin / dlopen</span><span class="prog-status wip">~ wip</span></div>
+    <div class="prog-item"><span>Global array g[]</span><span class="prog-status wip">~ wip</span></div>
+    <div class="prog-item"><span>Double / float type</span><span class="prog-status todo">&#183; todo</span></div>
+    <div class="prog-item"><span>Func calling</span><span class="prog-status todo">&#183; todo</span></div>
+  </div>
+</section>
+
+<div class="footer-wrap">
+  <footer>
+    <span>lo3-lang &middot; GPL-2.0 &middot; &copy; 2026 seesee010</span>
+    <div class="footer-links">
+      <a href="https://github.com/lo3-lang/lo3-core" target="_blank">lo3-core</a>
+      <a href="https://github.com/lo3-lang/learn-the-syntax" target="_blank">learn-the-syntax</a>
+      <a href="https://github.com/lo3-lang/Call-Shit" target="_blank">Call-Shit</a>
+      <a href="https://lo3-lang.github.io" target="_blank">lo3-lang.github.io</a>
+    </div>
+  </footer>
+</div>
 
 <!-- STEP 1: Module config — lo3.js auto-loads WASM when included -->
+<script src="lo3.js"></script>
 <script>
 var _outAccum = '', _errAccum = '';
 window.__lo3_ready = false;
@@ -872,12 +1030,13 @@ var Module = {
     window._lo3Run = Module.lo3_run;
     window._lo3Ver = Module.UTF8ToString(Module.lo3_version());
     if (window._onWasmReady) window._onWasmReady();
+  },
+  onAbort: function() {
+    _errAccum += 'ABORT: ' + Array.from(arguments).join(' ') + '\n';
+    window.__lo3_error = _errAccum;
   }
 };
 </script>
-<script src="lo3.js"></script>
-
-</div>
 
 <!-- STEP 3: App -->
 <script>
