@@ -1015,6 +1015,7 @@ window.__lo3_output = '';
 window.__lo3_error = '';
 
 var Module = {
+  locateFile: function(path) { return path; },
   print: function(t) {
     _outAccum += t + '\n';
     window.__lo3_output = _outAccum;
